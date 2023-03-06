@@ -2,12 +2,17 @@ from django.db import models
 
 from users.models import User
 
+
 class ProductCategory(models.Model):
     name = models.CharField(max_length=128, unique=True)
     description = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = 'category'
+        verbose_name_plural = 'categories'
 
 
 class Product(models.Model):
@@ -20,6 +25,10 @@ class Product(models.Model):
 
     def __str__(self):
         return f'Продукт {self.name} | Категория {self.category.name}'
+
+    class Meta:
+        verbose_name = 'product'
+        verbose_name_plural = 'products'
 
 
 class BasketQuerySet(models.QuerySet):
