@@ -1,23 +1,23 @@
+from django.shortcuts import HttpResponseRedirect
 from django.contrib.auth.views import LoginView
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
+from django.views.generic import TemplateView
 from django.views.generic.edit import CreateView, UpdateView
 from django.contrib.messages.views import SuccessMessageMixin
 
 from users.forms import UserLoginForm, UserRegistrationForm, UserProfileForm
-from users.models import User
+from users.models import User, EmailVerification
 from products.models import Basket
 from common.views import TitleMixin
 
 
 class UserLoginView(TitleMixin, LoginView):
-
     template_name = 'users/login.html'
     form_class = UserLoginForm
     title = 'Store - Авторизация'
 
 
 class UserRegistrationView(TitleMixin, SuccessMessageMixin, CreateView):
-
     model = User
     form_class = UserRegistrationForm
     title = 'Store - Регистрация'
@@ -27,7 +27,6 @@ class UserRegistrationView(TitleMixin, SuccessMessageMixin, CreateView):
 
 
 class UserProfileView(TitleMixin, UpdateView):
-
     model = User
     form_class = UserProfileForm
     template_name = 'users/profile.html'
@@ -40,3 +39,20 @@ class UserProfileView(TitleMixin, UpdateView):
         context = super(UserProfileView, self).get_context_data()
         context['baskets'] = Basket.objects.filter(user=self.object)
         return context
+
+
+class EmailVerificationView(TitleMixin, TemplateView):
+    title = 'Подтверждение электронной почты'
+    template_name = 'users/email_verification.html'
+
+    def get(self, request, *args, **kwargs):
+        super(EmailVerificationView, self).get(self, request, *args, **kwargs)
+        code = kwargs['code']
+        user = User.objects.get(email=kwargs['email'])
+        email_verifications = EmailVerification.objects.filter(user=user, code=code)
+        if email_verifications.exists() and not email_verifications.first().is_expired():
+            user.is_verified_email = True
+            user.save()
+            return super(EmailVerificationView, self).get(self, request, *args, **kwargs)
+        else:
+            return HttpResponseRedirect(reverse('index'))
