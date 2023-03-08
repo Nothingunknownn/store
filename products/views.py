@@ -3,8 +3,8 @@ from django.shortcuts import HttpResponseRedirect
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 
-from products.models import ProductCategory, Product, Basket
 from common.views import TitleMixin
+from products.models import Basket, Product
 
 
 class IndexView(TitleMixin, TemplateView):
